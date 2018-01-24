@@ -2,170 +2,166 @@
 
 namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
-class TemperatureMonitorDaemonApp {
+class TemperatureMonitorDaemonApp
+{
+    /**
+     * @var string The ID of the sensor from which to read.
+     */
+    public $sensor_id;
 
-	/**
-	 * @var string The ID of the sensor from which to read.
-	 */
-	public $sensor_id;
+    /**
+     * @var string The URL of the server to send the request to.
+     */
+    public $request_url;
 
-	/**
-	 * @var string The URL of the server to send the request to.
-	 */
-	public $request_url;
+    /**
+     * @var float The current temperature reading.
+     */
+    public $temperature;
 
-	/**
-	 * @var float The current temperature reading.
-	 */
-	public $temperature;
+    /**
+     * App constructor.
+     *
+     * Sets up the initial state of the application.
+     */
+    public function __construct()
+    {
+        $config = $this->getConfig();
 
-	/**
-	 * App constructor.
-	 *
-	 * Sets up the initial state of the application.
-	 */
-	public function __construct() {
+        $this->sensor_id   = $config['sensor_id'];
+        $this->request_url = $config['request_url'];
+    }
 
-		$config = $this->get_config();
+    /**
+     * Reads the configuration file and makes sure it is valid.
+     *
+     * @return array The configuration parameters.
+     *
+     * @throws \Exception if the configuration is invalid.
+     */
+    public function getConfig()
+    {
+        $config_file = dirname(APP_DIR) . '/config.php';
 
-		$this->sensor_id   = $config['sensor_id'];
-		$this->request_url = $config['request_url'];
-	}
+        if (! file_exists($config_file)) {
+            throw new \Exception('Config file not present');
+        }
 
-	/**
-	 * Reads the configuration file and makes sure it is valid.
-	 *
-	 * @return array The configuration parameters.
-	 *
-	 * @throws \Exception if the configuration is invalid.
-	 */
-	public function get_config() {
+        $config = require_once($config_file);
 
-		$config_file = dirname( APP_DIR ) . '/config.php';
+        if (empty($config['request_url']) || empty($config['sensor_id'])) {
+            throw new \Exception('Missing required configuration settings');
+        }
 
-		if ( ! file_exists( $config_file ) ) {
-			throw new \Exception( 'Config file not present' );
-		}
+        return $config;
+    }
 
-		$config = require_once( $config_file );
+    /**
+     * Run the app.
+     */
+    public function run()
+    {
+        $this->readSensor();
 
-		if ( empty( $config['request_url'] ) || empty( $config['sensor_id'] ) ) {
-			throw new \Exception( 'Missing required configuration settings' );
-		}
+        $response = $this->sendRequest();
+        $this->handleResponse($response);
+    }
 
-		return $config;
-	}
+    /**
+     * Reads the sensor data.
+     *
+     * @throws \Exception if the sensor file could not be read.
+     */
+    public function readSensor()
+    {
+        $sensor_id = $this->sensor_id;
 
-	/**
-	 * Run the app.
-	 */
-	public function run() {
+        if ('dummy' === $sensor_id) {
+            // If the sensor ID is 'dummy', use some dummy data in place of a real reading so we can test the operation
+            // of the software side of things without requiring the sensor hardware to be fully in place yet.
 
-		$this->read_sensor();
+            $dummy_temperature = rand(0, 40); // In Celsius.
 
-		$response = $this->send_request();
-		$this->handle_response( $response );
-	}
+            $sensor_data = sprintf(
+                "4c 01 4b 46 7f ff 04 10 f5 : crc=f5 YES\n4c 01 4b 46 7f ff 04 10 f5 t=%s",
+                $dummy_temperature * 1000
+            );
 
-	/**
-	 * Reads the sensor data.
-	 *
-	 * @throws \Exception if the sensor file could not be read.
-	 */
-	public function read_sensor() {
+            printf('[Using dummy data with a temperature of %s.]' . "\n", $dummy_temperature);
 
-		$sensor_id = $this->sensor_id;
+        } else {
+            $input_file = sprintf('/sys/bus/w1/devices/%s/w1_slave', $sensor_id);
 
-		if ( 'dummy' === $sensor_id ) {
-			// If the sensor ID is 'dummy', use some dummy data in place of a real reading so we can test the operation
-			// of the software side of things without requiring the sensor hardware to be fully in place yet.
+            if (! is_readable($input_file)) {
+                throw new \Exception(sprintf('Could not read from %s.', $input_file));
+            }
 
-			$dummy_temperature = rand( 0, 40 ); // In Celsius.
+            $sensor_data = file_get_contents($input_file);
+        }
 
-			$sensor_data = sprintf( "4c 01 4b 46 7f ff 04 10 f5 : crc=f5 YES\n4c 01 4b 46 7f ff 04 10 f5 t=%s",
-				$dummy_temperature * 1000
-			);
+        $temperature = $this->extractTemperature($sensor_data);
 
-			printf( '[Using dummy data with a temperature of %s.]' . "\n",
-				$dummy_temperature
-			);
+        $this->temperature = $temperature;
+    }
 
-		} else {
+    /**
+     * Extract the temperature from the sensor data.
+     *
+     * @param string $sensor_data The data read from the sensor.
+     *
+     * @return float The temperature reading.
+     *
+     * @throws \Exception if the temperature was not found in the sensor data.
+     */
+    public function extractTemperature($sensor_data)
+    {
+        $regex = '/t=(\d+)$/';
 
-			$input_file = sprintf( '/sys/bus/w1/devices/%s/w1_slave',
-				$sensor_id
-			);
+        if (! preg_match($regex, $sensor_data, $matches)) {
+            throw new \Exception('Could not extract temperature from the sensor data.');
+        }
 
-			if ( ! is_readable( $input_file ) ) {
-				throw new \Exception( sprintf( 'Could not read from %s.', $input_file ) );
-			}
+        $temperature_string = floatval($matches[1]);
+        $temperature        = $temperature_string / 1000;
 
-			$sensor_data = file_get_contents( $input_file );
-		}
+        return $temperature;
+    }
 
-		$temperature = $this->extract_temperature( $sensor_data );
+    /**
+     * Sends an HTTP request to the server to record the reading.
+     *
+     * @return string The Curl response body.
+     */
+    public function sendRequest()
+    {
+        $data = array(
+            'temperature' => $this->temperature,
+        );
 
-		$this->temperature = $temperature;
-	}
+        $response = curl_remote_post($this->request_url, $data);
 
-	/**
-	 * Extract the temperature from the sensor data.
-	 *
-	 * @param string $sensor_data The data read from the sensor.
-	 *
-	 * @return float The temperature reading.
-	 *
-	 * @throws \Exception if the temperature was not found in the sensor data.
-	 */
-	public function extract_temperature( $sensor_data ) {
+        return $response;
+    }
 
-		$regex = '/t=(\d+)$/';
+    /**
+     * Handles the Curl response, and outputs the appropriate error/success message.
+     *
+     * @param string $response The Curl response body.
+     *
+     * @throws \Exception if an error occurred.
+     */
+    public function handleResponse($response)
+    {
+        $response = json_decode($response, $assoc = true);
 
-		if ( ! preg_match( $regex, $sensor_data, $matches ) ) {
-			throw new \Exception( 'Could not extract temperature from the sensor data.' );
-		}
+        if (null === $response) {
+            throw new \Exception('Could not connect to the remote server');
+        }
 
-		$temperature_string = floatval( $matches[1] );
-		$temperature        = $temperature_string / 1000;
+        if (empty($response['type']) || 'success' !== $response['type']) {
+            throw new \Exception('Remote server returned an error response');
+        }
 
-		return $temperature;
-	}
-
-	/**
-	 * Sends an HTTP request to the server to record the reading.
-	 *
-	 * @return string The Curl response body.
-	 */
-	public function send_request() {
-
-		$data = array(
-			'temperature' => $this->temperature,
-		);
-
-		$response = curl_remote_post( $this->request_url, $data );
-
-		return $response;
-	}
-
-	/**
-	 * Handles the Curl response, and outputs the appropriate error/success message.
-	 *
-	 * @param string $response The Curl response body.
-	 *
-	 * @throws \Exception if an error occurred.
-	 */
-	public function handle_response( $response ) {
-
-		$response = json_decode( $response, $assoc = true );
-
-		if ( null === $response ) {
-			throw new \Exception( 'Could not connect to the remote server' );
-		}
-
-		if ( empty( $response['type'] ) || 'success' !== $response['type'] ) {
-			throw new \Exception( 'Remote server returned an error response' );
-		}
-
-		echo $response['data'];
-	}
+        echo $response['data'];
+    }
 }
