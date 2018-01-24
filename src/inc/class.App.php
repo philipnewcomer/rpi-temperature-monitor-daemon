@@ -23,6 +23,8 @@ class TemperatureMonitorDaemonApp
      * App constructor.
      *
      * Sets up the initial state of the application.
+     *
+     * @throws \Exception on an error condition.
      */
     public function __construct()
     {
@@ -58,6 +60,8 @@ class TemperatureMonitorDaemonApp
 
     /**
      * Run the app.
+     *
+     * @throws \Exception on an error condition.
      */
     public function run()
     {
