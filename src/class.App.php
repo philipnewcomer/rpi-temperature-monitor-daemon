@@ -24,38 +24,15 @@ class TemperatureMonitorDaemonApp
      *
      * Sets up the initial state of the application.
      *
+     * @param string $sensorId The sensor ID.
+     * @param string $requestUrl The request URL.
+     *
      * @throws \Exception on an error condition.
      */
-    public function __construct()
+    public function __construct($sensorId, $requestUrl)
     {
-        $config = $this->getConfig();
-
-        $this->sensorId   = $config['sensor_id'];
-        $this->requestUrl = $config['request_url'];
-    }
-
-    /**
-     * Reads the configuration file and makes sure it is valid.
-     *
-     * @return array The configuration parameters.
-     *
-     * @throws \Exception if the configuration is invalid.
-     */
-    public function getConfig()
-    {
-        $config_file = '../config.php';
-
-        if (! file_exists($config_file)) {
-            throw new \Exception('Config file not present');
-        }
-
-        $config = require_once($config_file);
-
-        if (empty($config['request_url']) || empty($config['sensor_id'])) {
-            throw new \Exception('Missing required configuration settings');
-        }
-
-        return $config;
+        $this->sensorId = $sensorId;
+        $this->requestUrl = $requestUrl;
     }
 
     /**
