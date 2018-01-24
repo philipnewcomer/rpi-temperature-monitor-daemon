@@ -1,6 +1,6 @@
 <?php
 
-namespace Temperature_Monitor\Daemon;
+namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
 function curl_remote_post( $url, $data ) {
 

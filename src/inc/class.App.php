@@ -1,6 +1,6 @@
 <?php
 
-namespace Temperature_Monitor\Daemon;
+namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
 class TemperatureMonitorDaemonApp {
 
