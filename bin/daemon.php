@@ -2,10 +2,8 @@
 
 namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
-define('APP_DIR', __DIR__);
-
-require_once(APP_DIR . '/inc/class.App.php');
-require_once(APP_DIR . '/inc/curl_remote_post.php');
+require_once '../src/class.App.php';
+require_once '../src/curl_remote_post.php';
 
 try {
     $app = new TemperatureMonitorDaemonApp();

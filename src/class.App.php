@@ -43,7 +43,7 @@ class TemperatureMonitorDaemonApp
      */
     public function getConfig()
     {
-        $config_file = dirname(APP_DIR) . '/config.php';
+        $config_file = '../config.php';
 
         if (! file_exists($config_file)) {
             throw new \Exception('Config file not present');
