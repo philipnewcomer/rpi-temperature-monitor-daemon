@@ -2,8 +2,8 @@
 
 namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
+require_once '../vendor/autoload.php';
 require_once '../src/class.App.php';
-require_once '../src/curl_remote_post.php';
 
 try {
     $options = getopt(null, [
@@ -21,6 +21,8 @@ try {
 
     $app = new TemperatureMonitorDaemonApp($options['sensor_id'], $options['request_url']);
     $app->run();
+
+    echo 'Request completed successfully.';
 } catch (\Exception $exception) {
     printf(
         'Error: %s',

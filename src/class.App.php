@@ -2,8 +2,15 @@
 
 namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
+use GuzzleHttp\Client;
+
 class TemperatureMonitorDaemonApp
 {
+    /**
+     * @var Client
+     */
+    public $client;
+
     /**
      * @var string The ID of the sensor from which to read.
      */
@@ -33,6 +40,8 @@ class TemperatureMonitorDaemonApp
     {
         $this->sensorId = $sensorId;
         $this->requestUrl = $requestUrl;
+
+        $this->client = new Client();
     }
 
     /**
@@ -43,9 +52,7 @@ class TemperatureMonitorDaemonApp
     public function run()
     {
         $this->readSensor();
-
-        $response = $this->sendRequest();
-        $this->handleResponse($response);
+        $this->sendRequest();
     }
 
     /**
@@ -111,7 +118,7 @@ class TemperatureMonitorDaemonApp
     /**
      * Sends an HTTP request to the server to record the reading.
      *
-     * @return string The Curl response body.
+     * @throws \Exception if the remote server returns a non-201 response code.
      */
     public function sendRequest()
     {
@@ -119,30 +126,12 @@ class TemperatureMonitorDaemonApp
             'temperature' => $this->temperature,
         );
 
-        $response = curl_remote_post($this->requestUrl, $data);
+        $response = $this->client->post($this->requestUrl, [
+            'json' => $data
+        ]);
 
-        return $response;
-    }
-
-    /**
-     * Handles the Curl response, and outputs the appropriate error/success message.
-     *
-     * @param string $response The Curl response body.
-     *
-     * @throws \Exception if an error occurred.
-     */
-    public function handleResponse($response)
-    {
-        $response = json_decode($response, $assoc = true);
-
-        if (null === $response) {
-            throw new \Exception('Could not connect to the remote server');
+        if (201 !== $response->getStatusCode()) {
+            throw new \Exception(sprintf('Remote server returned a %s status code', $response->getStatusCode()));
         }
-
-        if (empty($response['type']) || 'success' !== $response['type']) {
-            throw new \Exception('Remote server returned an error response');
-        }
-
-        echo $response['data'];
     }
 }
