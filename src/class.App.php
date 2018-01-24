@@ -7,12 +7,12 @@ class TemperatureMonitorDaemonApp
     /**
      * @var string The ID of the sensor from which to read.
      */
-    public $sensor_id;
+    public $sensorId;
 
     /**
      * @var string The URL of the server to send the request to.
      */
-    public $request_url;
+    public $requestUrl;
 
     /**
      * @var float The current temperature reading.
@@ -30,8 +30,8 @@ class TemperatureMonitorDaemonApp
     {
         $config = $this->getConfig();
 
-        $this->sensor_id   = $config['sensor_id'];
-        $this->request_url = $config['request_url'];
+        $this->sensorId   = $config['sensor_id'];
+        $this->requestUrl = $config['request_url'];
     }
 
     /**
@@ -78,7 +78,7 @@ class TemperatureMonitorDaemonApp
      */
     public function readSensor()
     {
-        $sensor_id = $this->sensor_id;
+        $sensor_id = $this->sensorId;
 
         if ('dummy' === $sensor_id) {
             // If the sensor ID is 'dummy', use some dummy data in place of a real reading so we can test the operation
@@ -142,7 +142,7 @@ class TemperatureMonitorDaemonApp
             'temperature' => $this->temperature,
         );
 
-        $response = curl_remote_post($this->request_url, $data);
+        $response = curl_remote_post($this->requestUrl, $data);
 
         return $response;
     }
