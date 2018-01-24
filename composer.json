@@ -1,0 +1,13 @@
+{
+    "name": "philipnewcomer/rpi-temmperature-monitor-daemon",
+    "description": "Monitor the temperature at a remote location using a Raspberry Pi",
+    "type": "project",
+    "license": "GPLv2",
+    "authors": [
+        {
+            "name": "Philip Newcomer",
+            "email": "contact@philipnewcomer.net"
+        }
+    ],
+    "require": {}
+}
