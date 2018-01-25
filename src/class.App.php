@@ -63,58 +63,53 @@ class TemperatureMonitorDaemonApp
      */
     public function readSensor()
     {
-        $sensor_id = $this->sensorId;
-
-        if ('dummy' === $sensor_id) {
+        if ('dummy' === $this->sensorId) {
             // If the sensor ID is 'dummy', use some dummy data in place of a real reading so we can test the operation
             // of the software side of things without requiring the sensor hardware to be fully in place yet.
 
-            $dummy_temperature = rand(-25, 25); // In Celsius
+            $dummyTemperature = rand(-25, 25); // In Celsius
 
-            $sensor_data = sprintf(
+            $sensorData = sprintf(
                 "4c 01 4b 46 7f ff 04 10 f5 : crc=f5 YES\n4c 01 4b 46 7f ff 04 10 f5 t=%s",
-                $dummy_temperature * 1000
+                $dummyTemperature * 1000
             );
 
             printf(
                 '[Using dummy data with a temperature of %s.]' . "\n",
-                $this->convertCelsiusToFahrenheit($dummy_temperature)
+                $this->convertCelsiusToFahrenheit($dummyTemperature)
             );
 
         } else {
-            $input_file = sprintf('/sys/bus/w1/devices/%s/w1_slave', $sensor_id);
+            $sensorFile = sprintf('/sys/bus/w1/devices/%s/w1_slave', $this->sensorId);
 
-            if (! is_readable($input_file)) {
-                throw new \Exception(sprintf('Could not read from %s.', $input_file));
+            if (! is_readable($sensorFile)) {
+                throw new \Exception(sprintf('Could not read from %s.', $sensorFile));
             }
 
-            $sensor_data = file_get_contents($input_file);
+            $sensorData = file_get_contents($sensorFile);
         }
 
-        $this->temperature = $this->convertCelsiusToFahrenheit($this->extractTemperature($sensor_data));
+        $this->temperature = $this->convertCelsiusToFahrenheit($this->extractTemperature($sensorData));
     }
 
     /**
      * Extract the temperature from the sensor data.
      *
-     * @param string $sensor_data The data read from the sensor.
+     * @param string $sensorData The data read from the sensor.
      *
      * @return float The temperature reading.
      *
      * @throws \Exception if the temperature was not found in the sensor data.
      */
-    public function extractTemperature($sensor_data)
+    public function extractTemperature($sensorData)
     {
         $regex = '/t=(-?\d+)$/';
 
-        if (! preg_match($regex, $sensor_data, $matches)) {
+        if (! preg_match($regex, $sensorData, $matches)) {
             throw new \Exception('Could not extract temperature from the sensor data.');
         }
 
-        $temperature_string = floatval($matches[1]);
-        $temperature        = $temperature_string / 1000;
-
-        return $temperature;
+        return floatval($matches[1]) / 1000;
     }
 
     /**
