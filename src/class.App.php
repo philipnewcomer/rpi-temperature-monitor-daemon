@@ -20,7 +20,7 @@ class TemperatureMonitorDaemonApp
     /**
      * @var string The URL of the server to send the request to.
      */
-    public $requestUrl;
+    public $remoteUrl;
 
     /**
      * @var float The current temperature reading.
@@ -37,10 +37,10 @@ class TemperatureMonitorDaemonApp
      *
      * @throws \Exception on an error condition.
      */
-    public function __construct($sensorId, $requestUrl)
+    public function __construct($sensorId, $remoteUrl)
     {
         $this->sensorId = $sensorId;
-        $this->requestUrl = $requestUrl;
+        $this->remoteUrl = $remoteUrl;
 
         $this->client = new Client();
     }
@@ -123,7 +123,7 @@ class TemperatureMonitorDaemonApp
             'temperature' => $this->temperature,
         );
 
-        $response = $this->client->post($this->requestUrl, [
+        $response = $this->client->post($this->remoteUrl, [
             'json' => $data
         ]);
 

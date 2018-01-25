@@ -8,18 +8,18 @@ require_once realpath(__DIR__ . '/../') . '/src/class.App.php';
 try {
     $options = getopt(null, [
         'sensor_id:',
-        'request_url:'
+        'remote_url:'
     ]);
 
     if (empty($options['sensor_id'])) {
         throw new \Exception('The --sensor_id argument is required.');
     }
 
-    if (empty($options['request_url'])) {
-        throw new \Exception('The --request_url argument is required.');
+    if (empty($options['remote_url'])) {
+        throw new \Exception('The --remote_url argument is required.');
     }
 
-    $app = new TemperatureMonitorDaemonApp($options['sensor_id'], $options['request_url']);
+    $app = new TemperatureMonitorDaemonApp($options['sensor_id'], $options['remote_url']);
     $app->run();
 
     echo 'Request completed successfully.';
