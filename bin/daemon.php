@@ -2,8 +2,8 @@
 
 namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
-require_once '../vendor/autoload.php';
-require_once '../src/class.App.php';
+require_once realpath(__DIR__ . '/../') . '/vendor/autoload.php';
+require_once realpath(__DIR__ . '/../') . '/src/class.App.php';
 
 try {
     $options = getopt(null, [
