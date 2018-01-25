@@ -3,6 +3,7 @@
 namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 
 use GuzzleHttp\Client;
+use PhpUnitsOfMeasure\PhysicalQuantity\Temperature;
 
 class TemperatureMonitorDaemonApp
 {
@@ -68,14 +69,17 @@ class TemperatureMonitorDaemonApp
             // If the sensor ID is 'dummy', use some dummy data in place of a real reading so we can test the operation
             // of the software side of things without requiring the sensor hardware to be fully in place yet.
 
-            $dummy_temperature = rand(0, 40); // In Celsius.
+            $dummy_temperature = rand(-25, 25); // In Celsius
 
             $sensor_data = sprintf(
                 "4c 01 4b 46 7f ff 04 10 f5 : crc=f5 YES\n4c 01 4b 46 7f ff 04 10 f5 t=%s",
                 $dummy_temperature * 1000
             );
 
-            printf('[Using dummy data with a temperature of %s.]' . "\n", $dummy_temperature);
+            printf(
+                '[Using dummy data with a temperature of %s.]' . "\n",
+                $this->convertCelsiusToFahrenheit($dummy_temperature)
+            );
 
         } else {
             $input_file = sprintf('/sys/bus/w1/devices/%s/w1_slave', $sensor_id);
@@ -87,9 +91,7 @@ class TemperatureMonitorDaemonApp
             $sensor_data = file_get_contents($input_file);
         }
 
-        $temperature = $this->extractTemperature($sensor_data);
-
-        $this->temperature = $temperature;
+        $this->temperature = $this->convertCelsiusToFahrenheit($this->extractTemperature($sensor_data));
     }
 
     /**
@@ -103,7 +105,7 @@ class TemperatureMonitorDaemonApp
      */
     public function extractTemperature($sensor_data)
     {
-        $regex = '/t=(\d+)$/';
+        $regex = '/t=(-?\d+)$/';
 
         if (! preg_match($regex, $sensor_data, $matches)) {
             throw new \Exception('Could not extract temperature from the sensor data.');
@@ -133,5 +135,20 @@ class TemperatureMonitorDaemonApp
         if (201 !== $response->getStatusCode()) {
             throw new \Exception(sprintf('Remote server returned a %s status code', $response->getStatusCode()));
         }
+    }
+
+    /**
+     * Converts a temperature in Celsius to Fahrenheit.
+     *
+     * @param float $temperatureCelsius The temperature in Celsius.
+     *
+     * @return float The temperature in Fahrenheit.
+     *
+     * @throws \Exception
+     */
+    public function convertCelsiusToFahrenheit($temperatureCelsius)
+    {
+        $temperature = new Temperature($temperatureCelsius, 'celsius');
+        return $temperature->toUnit('fahrenheit');
     }
 }
