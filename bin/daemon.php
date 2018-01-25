@@ -19,8 +19,8 @@ try {
         throw new \Exception('The --remote_url argument is required.');
     }
 
-    $app = new TemperatureMonitorDaemonApp($options['sensor_id'], $options['remote_url']);
-    $app->run();
+    (new App($options['sensor_id'], $options['remote_url']))
+        ->run();
 
     echo 'Request completed successfully.';
 } catch (\Exception $exception) {

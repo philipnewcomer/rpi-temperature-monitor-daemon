@@ -5,7 +5,7 @@ namespace PhilipNewcomer\RpiTemperatureMonitorDaemon;
 use GuzzleHttp\Client;
 use PhpUnitsOfMeasure\PhysicalQuantity\Temperature;
 
-class TemperatureMonitorDaemonApp
+class App
 {
     /**
      * @var Client
