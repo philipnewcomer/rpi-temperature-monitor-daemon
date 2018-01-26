@@ -19,10 +19,9 @@ try {
         throw new \Exception('The --remote_url argument is required.');
     }
 
-    (new App($options['sensor_id'], $options['remote_url']))
+    echo (new App($options['sensor_id'], $options['remote_url']))
         ->run();
 
-    echo 'Request completed successfully.';
 } catch (\Exception $exception) {
     printf(
         'Error: %s',

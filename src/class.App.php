@@ -53,7 +53,7 @@ class App
     public function run()
     {
         $this->readSensor();
-        $this->sendRequest();
+        return $this->sendRequest();
     }
 
     /**
@@ -130,6 +130,8 @@ class App
         if (201 !== $response->getStatusCode()) {
             throw new \Exception(sprintf('Remote server returned a %s status code', $response->getStatusCode()));
         }
+
+        return $response->getBody();
     }
 
     /**
