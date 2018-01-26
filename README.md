@@ -44,11 +44,21 @@ The daemon is a PHP script which is run on a cron job on a Raspberry Pi, which r
      ```
  12. Clone this repo to `~/temperature-monitor-daemon`
  13. Change to `~/temperature-monitor-daemon` and run `composer install`
- 14. Add the following to the crontab:
+ 14. Create an executable script `run_temperature_monitor_daemon` in the `pi` home directory with the following content:
      ```
-     */15 * * * * /usr/bin/php /home/pi/temperature-monitor-daemon/bin/daemon.php --sensor_id={sensor_id} --remote_url={remote_url} --secret_key={secret_key} >> /var/log/temperature-monitor-daemon.log 2>&1
+     #/bin/sh
+     
+     /usr/bin/php /home/pi/temperature-monitor-daemon/bin/daemon.php \
+     	--remote_url={remote_url} \
+     	--sensor_id={sensor_id} \
+     	--secret_key={secret_key} \
+     		>> /var/log/temperature-monitor-daemon.log 2>&1
      ```
      Where `sensor_id` is the hardware ID of the temparature sensor, `remote_url` is the URL of the remote [server](https://github.com/philipnewcomer/rpi-temperature-monitor-server), and `secret_key` is the secret key defined in the server's `.env` file used to authenticate requests from the daemon.
+ 15. Add the following cron entry:
+     ```
+     */15 * * * * /home/pi/run_temperature_monitor_daemon
+     ```
 
 ## FAQ
 
