@@ -13,6 +13,11 @@ class App
     public $client;
 
     /**
+     * @var string The secret key used to authenticate the request.
+     */
+    public $secretKey;
+
+    /**
      * @var string The ID of the sensor from which to read.
      */
     public $sensorId;
@@ -33,12 +38,14 @@ class App
      * Sets up the initial state of the application.
      *
      * @param string $sensorId The sensor ID.
-     * @param string $requestUrl The request URL.
+     * @param string $remoteUrl The request URL.
+     * @param string $secretKey The secret key.
      *
      * @throws \Exception on an error condition.
      */
-    public function __construct($sensorId, $remoteUrl)
+    public function __construct($sensorId, $remoteUrl, $secretKey)
     {
+        $this->secretKey = $secretKey;
         $this->sensorId = $sensorId;
         $this->remoteUrl = $remoteUrl;
 
@@ -120,6 +127,7 @@ class App
     public function sendRequest()
     {
         $data = array(
+            'secret_key' => $this->secretKey,
             'temperature' => $this->temperature,
         );
 

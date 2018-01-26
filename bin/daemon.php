@@ -7,6 +7,7 @@ require_once realpath(__DIR__ . '/../') . '/src/class.App.php';
 
 try {
     $options = getopt(null, [
+        'secret_key:',
         'sensor_id:',
         'remote_url:'
     ]);
@@ -19,7 +20,11 @@ try {
         throw new \Exception('The --remote_url argument is required.');
     }
 
-    echo (new App($options['sensor_id'], $options['remote_url']))
+    if (empty($options['secret_key'])) {
+        throw new \Exception('The --secret_key argument is required.');
+    }
+
+    echo (new App($options['sensor_id'], $options['remote_url'], $options['secret_key']))
         ->run();
 
 } catch (\Exception $exception) {
