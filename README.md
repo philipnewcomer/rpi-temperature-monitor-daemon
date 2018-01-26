@@ -14,12 +14,41 @@ The daemon is a PHP script which is run on a cron job on a Raspberry Pi, which r
  4. Change the password for the `pi` user.
  5. Add your public key to `~/.ssh/authorized_keys`.
  6. In `/etc/ssh/sshd_config`, disable password authentication.
- 7. Install the PHP CLI interpreter, Composer, and Git: `apt-get install php-cli composer git`
- 8. Clone this repo to `~/temperature-monitor-daemon`
- 9. Change to `~/temperature-monitor-daemon` and run `composer install`
- 10. Add the following to the crontab:  
-    `/usr/bin/php /home/pi/temperature-monitor-daemon/bin/daemon.php --sensor_id={sensor_id} --remote_url={remote_url} --secret_key={secret_key}`  
-    Where `sensor_id` is the hardware ID of the temparature sensor, `remote_url` is the URL of the remote [server](https://github.com/philipnewcomer/rpi-temperature-monitor-server), and `secret_key` is the secret key defined in the server's `.env` file used to authenticate requests from the daemon.
+ 7. Edit `/etc/modules` and add the following:
+    ```
+    w1-gpio
+    w1-therm
+    ```
+ 8. Edit `/boot/config.txt` and uncomment the following lines:
+    ```
+    #dtparam=i2c_arm=on
+    #dtparam=i2s=on
+    #dtparam=spi=on
+    ```
+ 9. Still in `/boot/config.txt`, change the following line:
+    ```
+    #dtoverlay=lirc-rpi
+    ```
+    to:
+    ```
+    dtoverlay=w1-gpio
+    ```
+ 10. Run the following commands to create the log file:
+     ```
+     sudo touch /var/log/temperature-monitor-daemon.log
+     sudo chown pi:pi /var/log/temperature-monitor-daemon.log
+     ```
+ 11. Install the PHP CLI interpreter, Composer, and Git:
+     ```
+     apt-get install php-cli composer git
+     ```
+ 12. Clone this repo to `~/temperature-monitor-daemon`
+ 13. Change to `~/temperature-monitor-daemon` and run `composer install`
+ 14. Add the following to the crontab:
+     ```
+     */15 * * * * /usr/bin/php /home/pi/temperature-monitor-daemon/bin/daemon.php --sensor_id={sensor_id} --remote_url={remote_url} --secret_key={secret_key} >> /var/log/temperature-monitor-daemon.log 2>&1
+     ```
+     Where `sensor_id` is the hardware ID of the temparature sensor, `remote_url` is the URL of the remote [server](https://github.com/philipnewcomer/rpi-temperature-monitor-server), and `secret_key` is the secret key defined in the server's `.env` file used to authenticate requests from the daemon.
 
 ## FAQ
 
