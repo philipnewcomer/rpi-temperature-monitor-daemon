@@ -1,8 +1,10 @@
 # Raspberry Pi Temperature Monitor Daemon
 
-Monitor the temperature at a remote location using a Raspberry Pi.
+*Monitor the temperature at a remote location using a Raspberry Pi*
 
-This repo contains the daemon that is run on a cron job on a Raspberry Pi, which reads the temperature sensor, and sends the temperature in an HTTP request to the remote URL where it will be recorded.
+This repo contains the daemon counterpart to the [Temperature Monitor Server](https://github.com/philipnewcomer/rpi-temperature-monitor-server).
+
+The daemon is a PHP script which is run on a cron job on a Raspberry Pi, which reads the temperature sensor, and sends the temperature in an HTTP request to the remote URL where it is recorded by the [server](https://github.com/philipnewcomer/rpi-temperature-monitor-server).
 
 ## Raspberry Pi Setup
 
@@ -18,10 +20,7 @@ This repo contains the daemon that is run on a cron job on a Raspberry Pi, which
  10. Add the following to the crontab, editing the remote URL and sensor ID:  
     `php /home/pi/temperature-monitor-daemon/bin/daemon.php --sensor_id={sensor_id} --remote_url={remote_url}`
 
-# FAQ
+## FAQ
 
 * **Why PHP and not something more suitable like Python?**  
   Because PHP is what I know at the moment. Eventually I'd like to rewrite this in Python, but for now I'm just getting up and running with PHP.
-* **Where are the server and viewer components?**  
-  https://github.com/philipnewcomer/rpi-temperature-monitor-server  
-  https://github.com/philipnewcomer/rpi-temperature-monitor-viewer
