@@ -49,7 +49,11 @@ class App
         $this->sensorId = $sensorId;
         $this->remoteUrl = $remoteUrl;
 
-        $this->client = new Client();
+        $this->client = new Client([
+            'headers' => [
+                'Accept' => 'application/json'
+            ]
+        ]);
     }
 
     /**
