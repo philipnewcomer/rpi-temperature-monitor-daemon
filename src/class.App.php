@@ -47,7 +47,7 @@ class App
     {
         $this->secretKey = $secretKey;
         $this->sensorId = $sensorId;
-        $this->remoteUrl = $remoteUrl;
+        $this->remoteUrl = $remoteUrl . '/readings';
 
         $this->client = new Client([
             'headers' => [
